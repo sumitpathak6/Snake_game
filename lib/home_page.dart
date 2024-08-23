@@ -5,6 +5,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:snake_game/blank_pixel.dart';
 import 'package:snake_game/food_pixel.dart';
 import 'package:snake_game/highscore_tile.dart';
@@ -222,93 +223,113 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: SizedBox(
-        width: screenWidth > 428 ? 428 : screenWidth,
-        child: Column(
-          children: [
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text("Current Score"),
-                        Text(
-                          currentScore.toString(),
-                          style: const TextStyle(fontSize: 36),
-                        ),
-                      ],
+      body: RawKeyboardListener(
+        focusNode: FocusNode(),
+        autofocus: true,
+        onKey: (event) {
+          if (event.isKeyPressed(LogicalKeyboardKey.arrowDown) &&
+              currentDirection != snake_Direction.UP) {
+            currentDirection = snake_Direction.DOWN;
+          } else if (event.isKeyPressed(LogicalKeyboardKey.arrowUp)&&
+              currentDirection != snake_Direction.DOWN) {
+            currentDirection = snake_Direction.UP;
+          } else if (event.isKeyPressed(LogicalKeyboardKey.arrowRight) &&
+              currentDirection != snake_Direction.LEFT) {
+            currentDirection = snake_Direction.RIGHT;
+          } else if (event.isKeyPressed(LogicalKeyboardKey.arrowLeft)&&
+              currentDirection != snake_Direction.RIGHT) {
+            currentDirection = snake_Direction.LEFT;
+          }
+        },
+        child: SizedBox(
+          width: screenWidth > 428 ? 428 : screenWidth,
+          child: Column(
+            children: [
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text("Current Score"),
+                          Text(
+                            currentScore.toString(),
+                            style: const TextStyle(fontSize: 36),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  Expanded(
-                    child: gameHasStarted
-                        ? Container()
-                        : FutureBuilder(
-                            future: getDocumentId,
-                            builder: (context, snapshot) {
-                              return ListView.builder(
-                                itemCount: highscore_documentId.length,
-                                itemBuilder: (context, index) {
-                                  return HighScoreTile(
-                                      documentId: highscore_documentId[index]);
-                                },
-                              );
-                            }),
-                  )
-                ],
-              ),
-            ),
-            Expanded(
-              flex: 3,
-              child: GestureDetector(
-                onVerticalDragUpdate: (details) {
-                  if (details.delta.dy > 0 &&
-                      currentDirection != snake_Direction.UP) {
-                    currentDirection = snake_Direction.DOWN;
-                  }
-                  if (details.delta.dy < 0 &&
-                      currentDirection != snake_Direction.DOWN) {
-                    currentDirection = snake_Direction.UP;
-                  }
-                },
-                onHorizontalDragUpdate: (details) {
-                  if (details.delta.dx > 0 &&
-                      currentDirection != snake_Direction.LEFT) {
-                    currentDirection = snake_Direction.RIGHT;
-                  }
-                  if (details.delta.dx < 0 &&
-                      currentDirection != snake_Direction.RIGHT) {
-                    currentDirection = snake_Direction.LEFT;
-                  }
-                },
-                child: GridView.builder(
-                    itemCount: totalSquares,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: rowSize),
-                    itemBuilder: (context, index) {
-                      if (snakePos.contains(index)) {
-                        return const SnakePixel();
-                      } else if (foodPosition == index) {
-                        return const FoodPixel();
-                      } else {
-                        return const BlankPixel();
-                      }
-                    }),
-              ),
-            ),
-            Expanded(
-              child: Center(
-                child: MaterialButton(
-                  onPressed: gameHasStarted ? () {} : startGame,
-                  color: gameHasStarted ? Colors.grey : Colors.pink,
-                  child: const Text('PLAY'),
+                    Expanded(
+                      child: gameHasStarted
+                          ? Container()
+                          : FutureBuilder(
+                              future: getDocumentId,
+                              builder: (context, snapshot) {
+                                return ListView.builder(
+                                  itemCount: highscore_documentId.length,
+                                  itemBuilder: (context, index) {
+                                    return HighScoreTile(
+                                        documentId:
+                                            highscore_documentId[index]);
+                                  },
+                                );
+                              }),
+                    )
+                  ],
                 ),
               ),
-            ),
-          ],
+              Expanded(
+                flex: 3,
+                child: GestureDetector(
+                  onVerticalDragUpdate: (details) {
+                    if (details.delta.dy > 0 &&
+                        currentDirection != snake_Direction.UP) {
+                      currentDirection = snake_Direction.DOWN;
+                    }
+                    if (details.delta.dy < 0 &&
+                        currentDirection != snake_Direction.DOWN) {
+                      currentDirection = snake_Direction.UP;
+                    }
+                  },
+                  onHorizontalDragUpdate: (details) {
+                    if (details.delta.dx > 0 &&
+                        currentDirection != snake_Direction.LEFT) {
+                      currentDirection = snake_Direction.RIGHT;
+                    }
+                    if (details.delta.dx < 0 &&
+                        currentDirection != snake_Direction.RIGHT) {
+                      currentDirection = snake_Direction.LEFT;
+                    }
+                  },
+                  child: GridView.builder(
+                      itemCount: totalSquares,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: rowSize),
+                      itemBuilder: (context, index) {
+                        if (snakePos.contains(index)) {
+                          return const SnakePixel();
+                        } else if (foodPosition == index) {
+                          return const FoodPixel();
+                        } else {
+                          return const BlankPixel();
+                        }
+                      }),
+                ),
+              ),
+              Expanded(
+                child: Center(
+                  child: MaterialButton(
+                    onPressed: gameHasStarted ? () {} : startGame,
+                    color: gameHasStarted ? Colors.grey : Colors.pink,
+                    child: const Text('PLAY'),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
